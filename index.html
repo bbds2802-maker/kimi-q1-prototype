@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kimi 首问之后 · 7 天新手原型 v1</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f4f4f2; color: #1a1a1a; }
+  .phone { max-width: 430px; margin: 0 auto; background: #fff; min-height: 100vh; padding-bottom: 90px; }
+  header { padding: 20px 20px 12px; border-bottom: 1px solid #eee; }
+  header h1 { font-size: 20px; }
+  header p { font-size: 13px; color: #666; margin-top: 4px; line-height: 1.6; }
+  .tabs { display: flex; gap: 8px; padding: 14px 20px 0; }
+  .tabs button { flex: 1; padding: 10px 4px; border: 1px solid #ddd; border-radius: 10px; background: #fff; font-size: 14px; cursor: pointer; }
+  .tabs button.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .screen { display: none; padding: 20px; }
+  .screen.active { display: block; }
+  .card { border: 1px solid #e5e5e5; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 16px; margin-bottom: 8px; }
+  .card p, .card li { font-size: 14px; line-height: 1.7; color: #333; }
+  .card ul { padding-left: 18px; }
+  input[type=text] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 15px; margin: 8px 0; }
+  .btn { display: block; width: 100%; padding: 12px; border: none; border-radius: 10px; background: #1a1a1a; color: #fff; font-size: 15px; cursor: pointer; margin-top: 8px; }
+  .btn.ghost { background: #fff; color: #1a1a1a; border: 1px solid #ccc; }
+  .next3 { display: grid; gap: 8px; margin-top: 10px; }
+  .next3 button { text-align: left; padding: 12px; border: 1px solid #ddd; border-radius: 10px; background: #fafafa; font-size: 14px; cursor: pointer; line-height: 1.5; }
+  .next3 button:hover { border-color: #1a1a1a; }
+  .deliverable { background: #f7f7f5; border-radius: 10px; padding: 14px; margin-top: 12px; font-size: 14px; line-height: 1.7; display: none; }
+  .day { display: flex; gap: 10px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+  .day:last-child { border-bottom: none; }
+  .day input { width: 20px; height: 20px; margin-top: 2px; accent-color: #1a1a1a; }
+  .day b { font-size: 14px; display: block; }
+  .day span { font-size: 13px; color: #666; line-height: 1.5; }
+  .day.done b { text-decoration: line-through; color: #999; }
+  .progress { height: 10px; background: #eee; border-radius: 6px; overflow: hidden; margin: 10px 0 6px; }
+  .progress > div { height: 100%; background: #1a1a1a; width: 0%; transition: width .3s; }
+  .bar { height: 12px; background: #eee; border-radius: 6px; overflow: hidden; margin: 8px 0 4px; }
+  .bar > div { height: 100%; background: #c0392b; width: 100%; transition: width .3s; }
+  .quota-note { font-size: 13px; color: #666; line-height: 1.6; }
+  .wall { display: none; background: #fff4e5; border: 1px solid #f0c98a; border-radius: 10px; padding: 14px; margin-top: 12px; font-size: 14px; line-height: 1.7; }
+  .tag { display: inline-block; font-size: 12px; background: #eef2ff; color: #333; border-radius: 6px; padding: 2px 8px; margin-bottom: 6px; }
+  .foot { font-size: 12px; color: #999; line-height: 1.6; padding: 0 20px; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <header>
+    <h1>Kimi · 首问之后</h1>
+    <p>新用户 7 天新手原型 v1 —— 演示用：首问答完不是结束，而是给一个“下一步能交付的东西”。价格以 Kimi 官方帮助中心 2026-10-19 截图为准（中国区连续包月 Go ¥49 / Plus ¥99 / Pro ¥199 / Max ¥699 / Ultra ¥1,399）。</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="active" onclick="show('s1', this)">① 首问之后</button>
+    <button onclick="show('s2', this)">② 我的 7 天</button>
+    <button onclick="show('s3', this)">③ 额度看得见</button>
+  </nav>
+
+  <!-- 屏 1 -->
+  <section id="s1" class="screen active">
+    <div class="card">
+      <h2>问 Kimi 一个问题</h2>
+      <p>试试输入：<b>“帮我准备下周的组会汇报”</b> 或任意问题，然后点提问。</p>
+      <input type="text" id="q" placeholder="例如：帮我准备下周的组会汇报" value="帮我准备下周的组会汇报">
+      <button class="btn" onclick="ask()">提问</button>
+      <div id="answer" class="deliverable"></div>
+    </div>
+    <div class="card" id="nextCard" style="display:none">
+      <span class="tag">首问之后 · 别只给文字答案</span>
+      <h2>顺着这个问题，还能做 3 件事</h2>
+      <div class="next3">
+        <button onclick="deliver('ppt')">📊 做成 PPT —— 10 页组会汇报稿，可直接下载</button>
+        <button onclick="deliver('report')">📄 做成报告 —— 带来源的 1 页摘要 + 参考资料</button>
+        <button onclick="deliver('task')">⏰ 设为每天自动做 —— 每天 9:00 推送当日进展提醒</button>
+      </div>
+      <div id="deliverable" class="deliverable"></div>
+    </div>
+  </section>
+
+  <!-- 屏 2 -->
+  <section id="s2" class="screen">
+    <div class="card">
+      <h2>我的 7 天 · 每天一个小任务</h2>
+      <p>做完一项就打勾。目标：7 天内摸到 3 个以上功能、产出 1 份可交付的东西。</p>
+      <div class="progress"><div id="prog"></div></div>
+      <p id="progText" style="font-size:13px;color:#666">已完成 0 / 7 · 已体验 0 个功能</p>
+    </div>
+    <div class="card" id="days"></div>
+  </section>
+
+  <!-- 屏 3 -->
+  <section id="s3" class="screen">
+    <div class="card">
+      <h2>额度看得见</h2>
+      <p class="quota-note">演示数字：免费版额度官方未公开具体数值，这里只演示“每次任务扣多少、到哪一步会卡住”的机制，不编官方额度。</p>
+      <div style="margin-top:12px"><b>本月免费额度剩余</b><span id="leftLabel" style="float:right">100%</span></div>
+      <div class="bar"><div id="quotaBar"></div></div>
+      <p class="quota-note" id="quotaText">还没用过。点下面任意一项，模拟一次真实消耗。</p>
+      <button class="btn ghost" onclick="spend('做一次 PPT', 25)">做一次 PPT（-25%）</button>
+      <button class="btn ghost" onclick="spend('做一次深度研究', 40)">做一次深度研究（-40%）</button>
+      <button class="btn ghost" onclick="spend('部署一个网站', 20)">部署一个网站（-20%）</button>
+      <div class="wall" id="wall">
+        <b>⚠ 额度快用完了</b><br>
+        免费版到这一步会卡住。升级 <b>Go ¥49/月</b>（连续包年折合 ¥39/月）可继续，7 天内新用户可先试用 —— 不是注册时推销，是在你刚好需要的那一刻才出现。
+      </div>
+    </div>
+  </section>
+
+  <p class="foot">原型 v1 · 2026-11-07 制作，仅用于月之暗面 Kimi 笔试题第 1 题演示。正式文档中的价格与权益以 kimi.com 会员页为准。</p>
+</div>
+
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function ask() {
+  const q = document.getElementById('q').value.trim() || '你的问题';
+  document.getElementById('answer').style.display = 'block';
+  document.getElementById('answer').innerHTML = '<b>Kimi：</b>已收到——“' + q.replace(/</g,'&lt;') + '”。要点是：先把结论和下一步列出来，细节放在报告里。';
+  document.getElementById('nextCard').style.display = 'block';
+}
+function deliver(kind) {
+  const el = document.getElementById('deliverable');
+  el.style.display = 'block';
+  if (kind === 'ppt') el.innerHTML = '<b>📊 PPT 已生成（示例）：</b><br>1. 本周进展总览<br>2. 三个关键数据<br>3. 风险与下一步<br>—— 10 页，可下载、可继续改。';
+  if (kind === 'report') el.innerHTML = '<b>📄 报告已生成（示例）：</b><br>1 页摘要 + 3 条带来源的参考资料。来源会逐条标注，不是凭空写的。';
+  if (kind === 'task') el.innerHTML = '<b>⏰ 定时任务已设置（示例）：</b><br>每天 9:00 自动整理当日进展并提醒你。去“我的 7 天”看看 Day 3 的任务就是它。';
+}
+const DAYS = [
+  ['Day 1', '做一份 PPT', '功能：PPT · 产出 1 份可交付物'],
+  ['Day 2', '问一个工作/学习问题并追问一次', '功能：对话 + 追问'],
+  ['Day 3', '设一个定时任务', '功能：定时任务 · Kimi 替你盯着一件事'],
+  ['Day 4', '把一份文档交给 Kimi 总结', '功能：文档理解'],
+  ['Day 5', '做一次深度研究', '功能：深度研究 · 带来源的报告'],
+  ['Day 6', '部署一个小网站 / 做一张表', '功能：网站部署 / 表格'],
+  ['Day 7', '回看本周：哪 3 个功能最有用？', '功能：复盘 · 决定要不要升级 Go'],
+];
+const box = document.getElementById('days');
+DAYS.forEach((d, i) => {
+  const div = document.createElement('label');
+  div.className = 'day';
+  div.innerHTML = '<input type="checkbox" onchange="tick(this)"><span><b>' + d[0] + ' · ' + d[1] + '</b><span>' + d[2] + '</span></span>';
+  box.appendChild(div);
+});
+function tick(cb) {
+  cb.closest('.day').classList.toggle('done', cb.checked);
+  const done = document.querySelectorAll('#days input:checked').length;
+  document.getElementById('prog').style.width = (done / 7 * 100) + '%';
+  document.getElementById('progText').textContent = '已完成 ' + done + ' / 7 · 已体验 ' + Math.min(done, 5) + ' 个功能' + (done >= 3 ? ' · 已摸到 3 个以上功能 ✓' : '');
+}
+let left = 100;
+function spend(name, cost) {
+  left = Math.max(0, left - cost);
+  document.getElementById('quotaBar').style.width = left + '%';
+  document.getElementById('leftLabel').textContent = left + '%';
+  document.getElementById('quotaText').textContent = '刚' + name + '，剩 ' + left + '%。';
+  if (left <= 15) document.getElementById('wall').style.display = 'block';
+}
+</script>
+</body>
+</html>
